@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niko Lausto - Developer Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .portfolio-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        
+        .profile-section {
+            width: 40%;
+            background: #2F3E34;
+            color: #e0e0e0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cover-photo {
+            width: 100%;
+            height: 30vh;
+            object-fit: cover;
+            display: block;
+        }
+
+        .profile-content {
+            margin-top: none;
+            padding: 1rem 3rem 3rem 4rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .profile-image {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: #444;
+            margin: 0 auto 2rem;
+            object-fit: cover;
+        }
+
+        .profile-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #F6F3E7;
+        }
+
+        .profile-section .title {
+            font-size: 1.2rem;
+            color: #F8F8F2;
+            margin-bottom: 2rem;
+        }
+
+        .bio {
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            color: #ccc;
+        }
+
+        .profile-links {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile-links a {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+
+        .profile-links a:hover {
+            color: #fff;
+        }
+
+        .profile-links a::before {
+            content: "→ ";
+            margin-right: 0.5rem;
+        }
+
+        /* Right Side - Projects */
+        .projects-section {
+            width: 60%;
+            margin-left: 40%;
+            background: #F6F3E7;
+            padding: 4rem 3rem;
+            overflow-y: auto;
+        }
+
+        .projects-section h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .project-card {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .project-card-link {
+            display: block;               
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .project-card-link:hover {
+            cursor: pointer;
+            transform: scale(1.02); 
+            transition: transform 0.2s ease;
+            }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .project-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #e0e0e0;
+            display: block;
+        }
+
+        .project-content {
+            padding: 1.5rem;
+        }
+
+        .project-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .project-title a {
+            color: #333;
+            text-decoration: none;
+        }
+
+        .project-title a:hover {
+            color: #0066cc;
+        }
+
+        .project-description {
+            color: #666;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            padding: 0.25rem 0.75rem;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            color: #555;
+        }
+
+        .tag.language {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .tag.type {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .tag.core {
+            background: #123546;
+            color: #cde7f5;
+        }
+
+        .tag.IoT {
+            background: #5E7D65;
+            color: #0D1117;
+        }
+
+        .tag.topics {
+            background: #64FFDA;
+            color: #0A192F;
+        }
+
+        /* Mobile Layout */
+        @media (max-width: 968px) {
+            .portfolio-container {
+                flex-direction: column;
+            }
+
+            .profile-section {
+                width: 100%;
+                position: relative;
+                height: auto;
+                min-height: auto;
+            }
+
+            .cover-photo {
+                height: 25vh;
+                object-position: center;
+            }
+
+            .profile-content {
+                padding: 3rem 2rem;
+            }
+
+            .projects-section {
+                width: 100%;
+                margin-left: 0;
+                padding: 3rem 2rem;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 969px) and (max-width: 1400px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 1401px) {
+            .projects-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="portfolio-container">
+        <!-- Left Side - Profile -->
+        
+        <aside class="profile-section">
+            <!-- <img src="https://via.placeholder.com/180/444/fff?text=Your+Photo" alt="Your Name" class="profile-image"> -->
+            <img src="resources/adam.jpg" class="cover-photo">
+            <div class="profile-content">
+                <h1>Niko Lausto</h1>
+                <p class="title">Software Engineer</p>
+                
+                <div class="bio">
+                    <p>Second-year software and systems engineering student. Passionate about developing working systems, IoT, and computer networking among other things</p>
+                    <element class="tag IoT">IoT</element>
+                    <element class="tag core">Backend</element>
+                    <element class="tag core">Servers</element>
+                    <element class="tag topics">Machine learning</element>
+                    <element class="tag IoT">Embedded</element>
+                    <element class="tag IoT">Computer Networking</element>
+
+                    <p style="margin-top: 1rem;">When I'm not coding, I like to use my time to learn, read, play videogames and listen to music.</p>
+                </div>
+                
+                <div class="profile-links">
+                    <a href="https://github.com/NNLisk" target="_blank">GitHub</a>
+                    <a href="https://www.linkedin.com/in/niko-lausto-459bb1289?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BtW7gcIQrQbGuXTY%2BWSQTPA%3D%3D" target="_blank">LinkedIn</a>
+                    <a href="mailto:niko.lausto@example.com">Email</a>
+                    <a href="resources/Niko_Lausto_en-1.pdf" target="_blank">CV</a>
+                </div>
+            </div>
+            
+        </aside>
+
+        <!-- Right Side - Projects -->
+        <main class="projects-section">
+            <h2>Projects</h2>
+            <div class="projects-grid" id="projectsGrid"></div>
+        </main>
+    </div>
+
+    <script>
+        // Project data
+        const projects = [
+            {
+                title: "ESP32 network sniffer",
+                link: "https://github.com/NNLisk/Wi-fi-sniffer",
+                image: "resources/snifferPFP.png",
+                description: "A sniffer that periodically captures unfiltered network packets using an Espressif ESP32 microcontroller. Attemt at solving identification past MAC address randomization",
+                tags: [
+                    { text: "C", type: "language" },
+                    { text: "IoT", type: "type" },
+                    { text: "Computer Networking", type: "type"}
+                ]
+            },
+            {
+                title: "Database Connection Pool Manager",
+                link: "https://github.com/NNLisk/manualConnectionPool",
+                image: "resources/Database.png",
+                description: "singleton database connection pool manager for JDCB. Improves efficiency by avoid the recreaion of connections.",
+                tags: [
+                    { text: "Java", type: "language" },
+                    { text: "Utility", type: "type" }
+                ]
+            },
+            {
+                title: "Custom Messaging Protocol",
+                link: "https://github.com/NNLisk/MessagingApp",
+                image: "https://via.placeholder.com/400x300/00BCD4/ffffff?text=Project+6",
+                description: "Client-server real-time messaging over TCP.",
+                tags: [
+                    { text: "C#", type: "language" },
+                    { text: "Network protocols", type: "type" }
+                ]
+            },
+            {
+                title: "Interactable database with GUI",
+                link: "https://github.com/NNLisk/databaseProject/",
+                image: "resources/databaseProj.png",
+                description: "Interactive and efficient database for searching and updating song information",
+                tags: [
+                    { text: "Java", type: "language" },
+                    { text: "SQL", type: "language" },
+                    { text: "PostgreSQL", type: "type" },
+                    { text: "UI", type: "type" }
+                ]
+            },
+            {
+                title: "Diffie-Hellman cryptography",
+                link: "https://github.com/NNLisk/DHKeyExchange",
+                image: "resources/dhkey.png",
+                description: "Simple implementation of the Diffie-Hellman cryptography",
+                tags: [
+                    { text: "C#", type: "language" },
+                    { text: "Cryptography", type: "type" }
+                ]
+            },
+            {
+                title: "OpenCV image processing material",
+                link: "https://github.com/NNLisk/Opencv-materials",
+                image: "resources/Opencv3.png",
+                description: "Reference material for learning image processing with OpenCV",
+                tags: [
+                    { text: "Python", type: "language" },
+                    { text: "OpenCV", type: "type" },
+                    { text: "Image Processing", type: "type"}
+                ]
+            },
+            {
+                title: "Discord Bot",
+                link: "https://github.com/NNLisk/Gandalf",
+                image: "https://via.placeholder.com/400x300/FF9800/ffffff?text=Project+5",
+                description: "Solid base architecture for creating a discord bot, listens and detects commands and joins voice channels",
+                tags: [
+                    { text: "Java", type: "language" },
+                    { text: "Bot", type: "type" },
+                    { text: "Server", type: "type" }
+                ]
+            }
+        ];
+
+        // Render projects
+        function renderProjects() {
+            const grid = document.getElementById('projectsGrid');
+            
+            projects.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'project-card';
+                
+                const tagsHTML = project.tags.map(tag => 
+                    `<span class="tag ${tag.type}">${tag.text}</span>`
+                ).join('');
+                
+                card.innerHTML = `
+                    <a href="${project.link}" target="_blank" class="project-card-link">
+                        <img src="${project.image}" alt="${project.title}" class="project-image">
+                        <div class="project-content">
+                            <h3 class="project-title">${project.title}</h3>
+                            <p class="project-description">${project.description}</p>
+                            <div class="project-tags">
+                                ${tagsHTML}
+                            </div>
+                        </div>
+                    </a>
+                    `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Initialize
+        renderProjects();
+    </script>
+</body>
+</html>
