@@ -1,10 +1,21 @@
 use std::net::{TcpListener, TcpStream};
 use std::io::{BufReader, prelude::*};
 use std::fs;
+use std::thread;
+use std::time::Duration;
 
 struct Request {
     method: String,
     route: String,
+} 
+
+impl Request {
+    fn default() -> Request{
+        return Request {
+            method: String::from("GET"),
+            route: String::from("/"),
+        }
+    }
 } 
 
 struct Response {
@@ -31,11 +42,7 @@ fn parse_request(stream: &TcpStream) -> Request {
             };
         } 
     } 
-
-    Request {
-        method: String::from("GET"),
-        route: String::from("/"),
-    }
+    Request::default()
 }
 
 fn respond(stream: &mut TcpStream, response: Response) {
@@ -56,30 +63,47 @@ fn respond(stream: &mut TcpStream, response: Response) {
 }
 
 
-fn handle_connection(mut stream: TcpStream) {
-    let request = parse_request(&stream);
-    let response = router(&request);
-    respond(&mut stream, response);
-}
-
-
 fn router(request: &Request) -> Response {
     match request.route.as_str() {
         "/" => Response {
             status: 200,
-            content: fs::read_to_string("contents/index.html")
-                .expect("failed reading file"),
+            content: fs::read_to_string("portfolio/index.html")
+            .expect("failed reading file"),
         },
-        _ => Response {
-            status: 404,
-            content: String::from("<h1> 404 Not Found</h1>"),
-        },
+        _ => {
+            
+            let file_path = format!("portfolio{}", request.route);
+            println!("portfolio{}", request.route);
+            match fs::read_to_string(&file_path) {
+                Ok(content) => Response {
+                    status: 200,
+                    content,
+                },
+                Err(_) => Response {
+                    status: 404,
+                    content: String::from("<h1>404 Not Found</h1>"),
+                },
+            }
+        }
     }
 }
 
+fn handle_connection(mut stream: TcpStream) {
+    let request = parse_request(&stream);
+    
+    match validate_path(&request) {
+        true => {
+            let response = router(&request);
+            respond(&mut stream, response);
+        },
+        false => {
+            println!("Path validation failed.")
+        }
+    } 
+}
 
 fn server() {
-    let listener = TcpListener::bind("serveraddress")
+    let listener = TcpListener::bind("192.168.100.10:7878")
         .expect("Failed to bind");
 
     for stream in listener.incoming() {
@@ -90,6 +114,15 @@ fn server() {
     }
 } 
 
+// simple path security
+fn validate_path(request: &Request) -> bool {
+    if request.route.contains("..") {
+        return false;
+    }
+    true
+}
+
 fn main() {
     server();
 }
+
