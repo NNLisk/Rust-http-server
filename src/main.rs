@@ -20,7 +20,7 @@ impl Request {
 
 struct Response {
     status: u16,
-    content: String,
+    content: Vec<u8>,
 }
 
 fn parse_request(stream: &TcpStream) -> Request {
@@ -53,38 +53,34 @@ fn respond(stream: &mut TcpStream, response: Response) {
     };
     
     let length = response.content.len();
-    let formatted = format!(
-        "{status_line}\r\nContent-Length: {length}\r\n\r\n{}",
-        response.content
+    let header = format!(
+        "{status_line}\r\nContent-Length: {length}\r\n\r\n",
     );
     
-    stream.write_all(formatted.as_bytes())
-        .expect("Failed to write response");
+    stream.write_all(header.as_bytes())
+        .expect("Failed to write response header");
+
+    stream.write_all(&response.content)
+        .expect("Failed to write response body")
 }
 
 
 fn router(request: &Request) -> Response {
-    match request.route.as_str() {
-        "/" => Response {
+    let file_path = if request.route == "/" {
+        "portfolio/index.html".to_string()
+    } else {
+        format!("portfolio{}", request.route)
+    };
+    
+    match fs::read(&file_path) {
+        Ok(content) => Response {
             status: 200,
-            content: fs::read_to_string("portfolio/index.html")
-            .expect("failed reading file"),
+            content,
         },
-        _ => {
-            
-            let file_path = format!("portfolio{}", request.route);
-            println!("portfolio{}", request.route);
-            match fs::read_to_string(&file_path) {
-                Ok(content) => Response {
-                    status: 200,
-                    content,
-                },
-                Err(_) => Response {
-                    status: 404,
-                    content: String::from("<h1>404 Not Found</h1>"),
-                },
-            }
-        }
+        Err(_) => Response {
+            status: 404,
+            content: b"<h1>404 Not Found</h1>".to_vec(),
+        },
     }
 }
 
