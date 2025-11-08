@@ -1,8 +1,6 @@
-use std::net::{TcpListener, TcpStream};
-use std::io::{BufReader, prelude::*};
-use std::fs;
-use std::thread;
-use std::time::Duration;
+use tokio::net::{TcpListener, TcpStream};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::fs;
 
 struct Request {
     method: String,
@@ -11,7 +9,7 @@ struct Request {
 
 impl Request {
     fn default() -> Request{
-        return Request {
+        Request {
             method: String::from("GET"),
             route: String::from("/"),
         }
@@ -23,29 +21,43 @@ struct Response {
     content: Vec<u8>,
 }
 
-fn parse_request(stream: &TcpStream) -> Request {
+impl Response {
+    fn default_not_found() -> Response {
+        Response {
+            status: 400,
+        content: b"<h1>400 Bad Request </h1>".to_vec(),
+        }
+    }
+}
+
+async fn parse_request(stream: &mut TcpStream) -> Option<Request> {
     let buf_reader = BufReader::new(stream);
-    let http_request: Vec<_> = buf_reader
-        .lines()
-        .map(|result|result.unwrap())
-        .take_while(|line| !line.is_empty())
-        .collect();
+    let mut lines = buf_reader.lines();
+
+    let mut http_request = Vec::new();
+
+    while let Ok(Some(line)) = lines.next_line().await {
+        if line.is_empty() {
+            break;
+        }
+        http_request.push(line);
+    }
 
     println!("Request: {http_request:#?}");
 
     if let Some(request_line) = http_request.first() {
         let parts: Vec<&str> = request_line.split_whitespace().collect();
         if parts.len() >= 2 {
-            return Request {
+            return Some(Request {
                 method: parts[0].to_string(),
                 route: parts[1].to_string(),
-            };
+            });
         } 
     } 
-    Request::default()
+    Some(Request::default())
 }
 
-fn respond(stream: &mut TcpStream, response: Response) {
+async fn respond(stream: &mut TcpStream, response: Response) {
     let status_line = match response.status {
         200 => "HTTP/1.1 200 OK",
         404 => "HTTP/1.1 404 NOT FOUND",
@@ -58,21 +70,23 @@ fn respond(stream: &mut TcpStream, response: Response) {
     );
     
     stream.write_all(header.as_bytes())
+        .await
         .expect("Failed to write response header");
 
     stream.write_all(&response.content)
+        .await
         .expect("Failed to write response body")
 }
 
 
-fn router(request: &Request) -> Response {
+async fn router(request: &Request) -> Response {
     let file_path = if request.route == "/" {
         "portfolio/index.html".to_string()
     } else {
         format!("portfolio{}", request.route)
     };
     
-    match fs::read(&file_path) {
+    match fs::read(&file_path).await {
         Ok(content) => Response {
             status: 200,
             content,
@@ -84,31 +98,42 @@ fn router(request: &Request) -> Response {
     }
 }
 
-fn handle_connection(mut stream: TcpStream) {
-    let request = parse_request(&stream);
+async fn handle_connection(mut stream: TcpStream) {
     
-    match validate_path(&request) {
-        true => {
-            let response = router(&request);
-            respond(&mut stream, response);
+    match parse_request(&mut stream).await {
+        Some(request) => {
+            if validate_path(&request) {
+                let response = router(&request).await;
+                respond(&mut stream, response).await;
+            } else {
+                let response = Response::default_not_found();
+                respond(&mut stream, response).await;
+            }
         },
-        false => {
-            println!("Path validation failed.")
+        None => {
+            let response = Response::default_not_found();
+            respond(&mut stream, response).await;
         }
-    } 
+    }
 }
 
-fn server() {
+async fn server() {
     let listener = TcpListener::bind("192.168.100.10:7878")
+        .await
         .expect("Failed to bind");
 
-    for stream in listener.incoming() {
-        match stream {
-            Ok(stream) => handle_connection(stream),
+    loop {
+        match listener.accept().await {
+            Ok((stream, addr)) => {
+                println!("Connection from {}", addr);
+                tokio::spawn(async move {
+                    handle_connection(stream).await;
+                });
+            }
             Err(e) => println!("Failed to accept connection {}", e),
         }
     }
-} 
+}
 
 // simple path security
 fn validate_path(request: &Request) -> bool {
@@ -118,7 +143,8 @@ fn validate_path(request: &Request) -> bool {
     true
 }
 
-fn main() {
-    server();
+#[tokio::main]
+async fn main() {
+    server().await;
 }
 
