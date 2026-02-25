@@ -24,8 +24,8 @@ struct Response {
 impl Response {
     fn default_not_found() -> Response {
         Response {
-            status: 400,
-        content: b"<h1>400 Bad Request </h1>".to_vec(),
+            status: 404,
+        content: b"<h1>404 Not found </h1>".to_vec(),
         }
     }
 }
